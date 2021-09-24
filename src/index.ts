@@ -16,6 +16,7 @@ interface Event {
   tierType: string;
   userType: string;
   appType: string;
+  headers: any;
 }
 
 interface BaseData {
@@ -89,7 +90,7 @@ const transformObj = (obj: any) => {
 export const logEvent = async (eventObj: Event, platforms: PLATFORMS_LOG[]) => {
   if (validateLogEventObj(eventObj) && platforms) {
     try {
-      const { event, data, datetime, timeZone, tierType, userType, appType } = eventObj;
+      const { event, data, datetime, timeZone, tierType, userType, appType, headers } = eventObj;
 
       // firebase
       const transformData = transformObj(data);
@@ -117,17 +118,18 @@ export const logEvent = async (eventObj: Event, platforms: PLATFORMS_LOG[]) => {
             }
           ]
         };
-        const headers = {
+        const _headers = {
           Authorization: Config.BASIC_AUTH,
           'X-User-Type': userType,
           'X-App-Type': appType,
           'X-Tier-Type': tierType,
           'X-Request-Id':  uuid(),
+          ...(headers || {})
         }
         console.log('collectData', JSON.stringify(collectData));
-        console.log('headers', JSON.stringify(headers));
+        console.log('headers', JSON.stringify(_headers));
 
-        apiRequest(data,headers)
+        apiRequest(data,_headers)
       }
     } catch (error) {
       console.warn('error', error);
