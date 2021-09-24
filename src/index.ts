@@ -105,9 +105,6 @@ export const logEvent = async (eventObj: Event, platforms: PLATFORMS_LOG[]) => {
         const baseData = await getDeviceInfo();
         const collectData = {
           deviceInfo: baseData,
-          userType,
-          appType,
-          tierType,
           events: [
             {
               data,
@@ -129,7 +126,7 @@ export const logEvent = async (eventObj: Event, platforms: PLATFORMS_LOG[]) => {
         console.log('collectData', JSON.stringify(collectData));
         console.log('headers', JSON.stringify(_headers));
 
-        apiRequest(data,_headers)
+        apiRequest(collectData,_headers)
       }
     } catch (error) {
       console.warn('error', error);
