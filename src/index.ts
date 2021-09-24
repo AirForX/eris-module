@@ -4,7 +4,6 @@ import Analytics from 'appcenter-analytics';
 import AsyncStorage from '@react-native-community/async-storage';
 import { ApiResponse } from 'apisauce';
 import Config from 'react-native-config';
-import { v4 as uuid } from 'uuid';
 
 import {api} from './HttpClient';
 
@@ -13,9 +12,7 @@ interface Event {
   data: any;
   datetime: string;
   timeZone: string;
-  tierType: string;
   userType: string;
-  appType: string;
   headers: any;
 }
 
@@ -90,7 +87,7 @@ const transformObj = (obj: any) => {
 export const logEvent = async (eventObj: Event, platforms: PLATFORMS_LOG[]) => {
   if (validateLogEventObj(eventObj) && platforms) {
     try {
-      const { event, data, datetime, timeZone, tierType, userType, appType, headers } = eventObj;
+      const { event, data, datetime, timeZone, userType, headers } = eventObj;
 
       // firebase
       const transformData = transformObj(data);
@@ -111,7 +108,7 @@ export const logEvent = async (eventObj: Event, platforms: PLATFORMS_LOG[]) => {
               event,
               datetime,
               timeZone,
-              appType,
+              userType,
             }
           ]
         };
