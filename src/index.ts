@@ -115,18 +115,10 @@ export const logEvent = async (eventObj: Event, platforms: PLATFORMS_LOG[]) => {
             }
           ]
         };
-        const _headers = {
-          Authorization: Config.BASIC_AUTH,
-          'X-User-Type': userType,
-          'X-App-Type': appType,
-          'X-Tier-Type': tierType,
-          'X-Request-Id':  uuid(),
-          ...(headers || {})
-        }
         console.log('collectData', JSON.stringify(collectData));
-        console.log('headers', JSON.stringify(_headers));
+        console.log('headers', JSON.stringify(headers));
 
-        apiRequest(collectData,_headers)
+        apiRequest(collectData,headers || {})
       }
     } catch (error) {
       console.warn('error', error);
