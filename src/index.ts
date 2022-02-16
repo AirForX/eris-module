@@ -4,7 +4,7 @@ import Analytics from 'appcenter-analytics';
 import AsyncStorage from '@react-native-community/async-storage';
 import { ApiResponse } from 'apisauce';
 import Config from 'react-native-config';
-
+import { getObjectByKey, calculateToPostApi, cleanDiagnosticsLogs } from './utils/AsyncStorage';
 import {api} from './HttpClient';
 
 interface Event {
@@ -99,23 +99,26 @@ export const logEvent = async (eventObj: Event, platforms: PLATFORMS_LOG[]) => {
         await firebaseAnalytics().logEvent(event, transformData);
       }
       if (platforms.includes('MY_PLATFORM')) {
-        const baseData = await getDeviceInfo();
-        const collectData = {
-          deviceInfo: baseData,
-          events: [
-            {
-              data,
-              event,
-              datetime,
-              timeZone,
-              userType,
-            }
-          ]
+        const eventLog = {
+          data,
+          event,
+          datetime,
+          timeZone,
+          userType,
         };
-        console.log('collectData', JSON.stringify(collectData));
-        console.log('headers', JSON.stringify(headers));
-
-        apiRequest(collectData,headers || {})
+        const events = await calculateToPostApi(eventLog);
+        if (events) {
+          const baseData = await getDeviceInfo();
+          const collectData = {
+            deviceInfo: baseData,
+            events,
+          };
+          console.log('collectData', JSON.stringify(collectData));
+          const response = await apiRequest(collectData,headers || {})
+          if (response.ok) {
+            cleanDiagnosticsLogs();
+          }
+        }
       }
     } catch (error) {
       console.warn('error', error);
