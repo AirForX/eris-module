@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-community/async-storage';
 
 const MAX_MINUTES_POST = 10;
-const MAX_LENGTH = 40;
+export const MAX_LENGTH = 25;
 export const  DIAGNOSTICS_LOGS = '@diagnosticsLogs';
 
 export async function storeWith(object: any, key: string) {
@@ -59,9 +59,10 @@ export async function cleanDiagnosticsLogsToEvents(elements: number) {
       updateAt,
       events: newerEvents,
     };
-    storeWith(logStore, DIAGNOSTICS_LOGS)
+    await storeWith(logStore, DIAGNOSTICS_LOGS)
+    // const Logs = await getDiagnosticsLogs();
   } else {
-    storeWith({}, DIAGNOSTICS_LOGS);
+    await storeWith({}, DIAGNOSTICS_LOGS);
   }
 }
 
@@ -79,7 +80,7 @@ export function validateLogObj(logObj: any) {
     const {events, updateAt} = logObj;
     if (events && Array.isArray(events)) {
       const minutes = minutesDateToNow(updateAt);
-      return events.length >= MAX_LENGTH || minutes >= MAX_MINUTES_POST;
+      return events.length % MAX_LENGTH === 0;
     }
   }
   return false;
@@ -87,6 +88,7 @@ export function validateLogObj(logObj: any) {
 
 export async function calculateToPostApi(event: any) {
   const logObj = await setDiagnosticsLogs(event);
+
   if (logObj) {
     if (validateLogObj(logObj)) {
       const {events, updateAt} = logObj;

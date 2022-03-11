@@ -4,7 +4,7 @@ import Analytics from 'appcenter-analytics';
 import AsyncStorage from '@react-native-community/async-storage';
 import { ApiResponse } from 'apisauce';
 import Config from 'react-native-config';
-import { getObjectByKey, calculateToPostApi, cleanDiagnosticsLogs, cleanDiagnosticsLogsToEvents } from './utils/AsyncStorage';
+import { getObjectByKey, calculateToPostApi, cleanDiagnosticsLogs, cleanDiagnosticsLogsToEvents, MAX_LENGTH } from './utils/AsyncStorage';
 import {api} from './HttpClient';
 
 interface Event {
@@ -117,7 +117,7 @@ export const logEvent = async (eventObj: Event, platforms: PLATFORMS_LOG[]) => {
           console.log('collectData', JSON.stringify(collectData));
           const response = await apiRequest(collectData,headers || {})
           if (response.ok) {
-            cleanDiagnosticsLogs();
+            cleanDiagnosticsLogsToEvents(MAX_LENGTH);
           } else {
             const status = response.status;
             //Request Entity Too Large
