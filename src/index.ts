@@ -4,7 +4,7 @@ import Analytics from 'appcenter-analytics';
 import AsyncStorage from '@react-native-community/async-storage';
 import { ApiResponse } from 'apisauce';
 import Config from 'react-native-config';
-import { getObjectByKey, calculateToPostApi, cleanDiagnosticsLogs } from './utils/AsyncStorage';
+import { getObjectByKey, calculateToPostApi, cleanDiagnosticsLogs, cleanDiagnosticsLogsToEvents, MAX_LENGTH } from './utils/AsyncStorage';
 import {api} from './HttpClient';
 
 interface Event {
@@ -106,6 +106,7 @@ export const logEvent = async (eventObj: Event, platforms: PLATFORMS_LOG[]) => {
           timeZone,
           userType,
         };
+
         const events = await calculateToPostApi(eventLog);
         if (events) {
           const baseData = await getDeviceInfo();
@@ -116,7 +117,21 @@ export const logEvent = async (eventObj: Event, platforms: PLATFORMS_LOG[]) => {
           console.log('collectData', JSON.stringify(collectData));
           const response = await apiRequest(collectData,headers || {})
           if (response.ok) {
-            cleanDiagnosticsLogs();
+            cleanDiagnosticsLogsToEvents(MAX_LENGTH);
+          } else {
+            const status = response.status;
+            //Request Entity Too Large
+            if (status === 413) {
+              const olderEvents = events.length >= 7 ? events.slice(0,7) : events;
+              const collectData = {
+                deviceInfo: baseData,
+                events: olderEvents,
+              };
+              const resRetry = await apiRequest(collectData,headers || {})
+              if (resRetry.ok) {
+                cleanDiagnosticsLogsToEvents(7);
+              }
+            }
           }
         }
       }

@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-community/async-storage';
 
 const MAX_MINUTES_POST = 10;
-const MAX_LENGTH = 50;
+export const MAX_LENGTH = 25;
 export const  DIAGNOSTICS_LOGS = '@diagnosticsLogs';
 
 export async function storeWith(object: any, key: string) {
@@ -40,7 +40,6 @@ export async function setDiagnosticsLogs(event: any) {
       events: Array.isArray(events) ? [...events, event] : [event]
     };
 
-    console.log('logStore', logStore);
    return  storeWith(logStore, DIAGNOSTICS_LOGS)
   }
   return undefined
@@ -48,6 +47,23 @@ export async function setDiagnosticsLogs(event: any) {
 
 export async function cleanDiagnosticsLogs() {
   storeWith({}, DIAGNOSTICS_LOGS);
+}
+
+export async function cleanDiagnosticsLogsToEvents(elements: number) {
+  const logObj = await getDiagnosticsLogs();
+  const {events} = logObj || {};
+  if (events && events.length > elements) {
+    const newerEvents = events.slice(elements);
+    const updateAt = new Date();
+    const logStore = {
+      updateAt,
+      events: newerEvents,
+    };
+    await storeWith(logStore, DIAGNOSTICS_LOGS)
+    // const Logs = await getDiagnosticsLogs();
+  } else {
+    await storeWith({}, DIAGNOSTICS_LOGS);
+  }
 }
 
 function minutesDateToNow(date?: Date) {
@@ -64,7 +80,7 @@ export function validateLogObj(logObj: any) {
     const {events, updateAt} = logObj;
     if (events && Array.isArray(events)) {
       const minutes = minutesDateToNow(updateAt);
-      return events.length >= MAX_LENGTH || minutes >= MAX_MINUTES_POST;
+      return events.length % MAX_LENGTH === 0;
     }
   }
   return false;
@@ -72,10 +88,12 @@ export function validateLogObj(logObj: any) {
 
 export async function calculateToPostApi(event: any) {
   const logObj = await setDiagnosticsLogs(event);
+
   if (logObj) {
     if (validateLogObj(logObj)) {
       const {events, updateAt} = logObj;
-      return events;
+      const postEvents = events.length >= MAX_LENGTH ? events.slice(0,MAX_LENGTH) : events;
+      return postEvents;
     }
   }
   return undefined;
