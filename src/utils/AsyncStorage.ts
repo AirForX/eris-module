@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-community/async-storage';
 
 const MAX_MINUTES_POST = 10;
-const MAX_LENGTH = 50;
+const MAX_LENGTH = 40;
 export const  DIAGNOSTICS_LOGS = '@diagnosticsLogs';
 
 export async function storeWith(object: any, key: string) {
@@ -40,7 +40,6 @@ export async function setDiagnosticsLogs(event: any) {
       events: Array.isArray(events) ? [...events, event] : [event]
     };
 
-    console.log('logStore', logStore);
    return  storeWith(logStore, DIAGNOSTICS_LOGS)
   }
   return undefined
@@ -48,6 +47,22 @@ export async function setDiagnosticsLogs(event: any) {
 
 export async function cleanDiagnosticsLogs() {
   storeWith({}, DIAGNOSTICS_LOGS);
+}
+
+export async function cleanDiagnosticsLogsToEvents(elements: number) {
+  const logObj = await getDiagnosticsLogs();
+  const {events} = logObj || {};
+  if (events && events.length > elements) {
+    const newerEvents = events.slice(elements);
+    const updateAt = new Date();
+    const logStore = {
+      updateAt,
+      events: newerEvents,
+    };
+    storeWith(logStore, DIAGNOSTICS_LOGS)
+  } else {
+    storeWith({}, DIAGNOSTICS_LOGS);
+  }
 }
 
 function minutesDateToNow(date?: Date) {
