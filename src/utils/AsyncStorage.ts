@@ -92,7 +92,8 @@ export async function calculateToPostApi(event: any) {
   if (logObj) {
     if (validateLogObj(logObj)) {
       const {events, updateAt} = logObj;
-      return events;
+      const postEvents = events.length >= MAX_LENGTH ? events.slice(0,MAX_LENGTH) : events;
+      return postEvents;
     }
   }
   return undefined;
